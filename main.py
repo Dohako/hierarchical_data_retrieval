@@ -33,8 +33,11 @@ try:
         quit()
     with open('base.json', 'r', encoding='UTF-8') as base:
         data = json.load(base)
-        loguru.logger.info(data[0])
+        loguru.logger.info(len(data[0]))
     # TODO make table creation
+
+    # TODO clear wrong operation below
+    # wrong operation to clear base at end
     sql = '''CREATE table mydb''';
     cursor.execute(sql)
     loguru.logger.info("Database created successfully........")

@@ -1,0 +1,1 @@
+When start, please, create file .env and add base.json. Examples for files here in txt format.

@@ -4,6 +4,34 @@ import psycopg2
 import dotenv
 import json
 
+
+def get_result_data(last_dep, cursor: any):
+    '''
+    Function to dig for two layers in base and get names of employees
+    :param last_dep: [id, parentid, name, type] list with ladt department info to dig by it parentId and so on
+    :param cursor: cursor object of psycopg (shadowing is ok)
+    :return: list with names of employees
+    '''
+    sql = f'''SELECT id FROM TEST WHERE parentid = {last_dep[0]}'''
+    cursor.execute(sql)
+    departments = cursor.fetchall()
+    values = []
+    for department in departments:
+        sql = f'''SELECT id,name,type FROM TEST WHERE parentid = {department[0]}'''
+        cursor.execute(sql)
+        for value in cursor.fetchall():
+            if value[2] == 3:
+                if value[1] not in values:
+                    values.append(value[1])
+            elif value[2] == 2:
+                sql = f'''SELECT name FROM TEST WHERE parentid = {value[0]}'''
+                cursor.execute(sql)
+                for v in cursor.fetchall():
+                    if v[0] not in values:
+                        values.append(v[0])
+    return values
+
+
 loguru.logger.add('log.log')
 
 if os.path.exists('.env') is False:
@@ -111,26 +139,10 @@ while True:
         if first_level[3] != 3:
             print(f'{first_level[2]} принадлежащий {second_level[2]} находящийся в{third_level[2]}')
             continue
-        sql = f'''SELECT id FROM TEST WHERE parentid = {third_level[0]}'''
-        cursor.execute(sql)
-        departments = cursor.fetchall()
+        data = get_result_data(third_level,cursor)
         result = f'{third_level[2]}: '
-        values = []
-        for department in departments:
-            sql = f'''SELECT id,name,type FROM TEST WHERE parentid = {department[0]}'''
-            cursor.execute(sql)
-            for value in cursor.fetchall():
-                if value[2] == 3:
-                    if value[1] not in values:
-                        values.append(value[1])
-                elif value[2] == 2:
-                    sql = f'''SELECT name FROM TEST WHERE parentid = {value[0]}'''
-                    cursor.execute(sql)
-                    for v in cursor.fetchall():
-                        if v[0] not in values:
-                            values.append(v[0])
-        for v in values:
-            result += f'{v}, '
+        for value in data:
+            result += f'{value}, '
         result = result[:len(result) - 2]
         print(result)
         continue
@@ -141,26 +153,10 @@ while True:
         print(f'Проблема с id {first_level[0]} из-за того, что id {fourth_level[0]}'
               f'имеет parentid {fourth_level[1]}')
         continue
-    sql = f'''SELECT id FROM TEST WHERE parentid = {fourth_level[0]}'''
-    cursor.execute(sql)
-    departments = cursor.fetchall()
+    data = get_result_data(fourth_level, cursor)
     result = f'{fourth_level[2]}: '
-    values = []
-    for department in departments:
-        sql = f'''SELECT id, name, type FROM TEST WHERE parentid = {department[0]}'''
-        cursor.execute(sql)
-        for value in cursor.fetchall():
-            if value[2] == 3:
-                if value[1] not in values:
-                    values.append(value[1])
-            elif value[2] == 2:
-                sql = f'''SELECT name FROM TEST WHERE parentid = {value[0]}'''
-                cursor.execute(sql)
-                for v in cursor.fetchall():
-                    if v[0] not in values:
-                        values.append(v[0])
-    for v in values:
-        result += f'{v}, '
+    for value in data:
+        result += f'{value}, '
     result = result[:len(result) - 2]
     print(result)
 conn.close()

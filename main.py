@@ -40,10 +40,22 @@ if os.path.exists('.env') is False:
 
 dotenv.load_dotenv('./.env')
 DATABASE = os.getenv("DATABASE")
+if DATABASE == '':
+    loguru.logger.error('fill .env with database name, please')
+    quit()
 USER = os.getenv("USER")
+if USER == '':
+    USER = 'postgres'
 PASSWORD = os.getenv("PASSWORD")
+if PASSWORD == '':
+    loguru.logger.error('fill .env with password, please')
+    quit()
 HOST = os.getenv("HOST")
+if HOST == '':
+    HOST = '127.0.0.1'
 PORT = os.getenv("PORT")
+if PORT == '':
+    PORT = '5432'
 negative = ['н', 'нет', 'n', 'no','esc','quit','quit()','exit']
 
 conn = psycopg2.connect(
